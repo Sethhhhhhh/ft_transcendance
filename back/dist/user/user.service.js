@@ -21,15 +21,8 @@ let UserService = class UserService {
             where: user,
         });
     }
-    async users(params) {
-        const { skip, take, cursor, where, orderBy } = params;
-        return this.prisma.user.findMany({
-            skip,
-            take,
-            cursor,
-            where,
-            orderBy,
-        });
+    async users() {
+        return this.prisma.user.findMany();
     }
     async createUser(data) {
         return this.prisma.user.create({

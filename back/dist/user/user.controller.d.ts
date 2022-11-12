@@ -6,7 +6,7 @@ export declare class UserController {
     private readonly userService;
     constructor(userService: UserService);
     getUsers(): Promise<User[]>;
-    getUserById(id: string): Promise<User>;
+    getUserById(id: number): Promise<User>;
     createUser(userData: CreateUserDto): Promise<User>;
     updateUser(id: string, data: UpdateUserDto): Promise<User>;
     deleteUser(id: string): Promise<User>;
