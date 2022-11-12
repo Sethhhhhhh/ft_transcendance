@@ -14,4 +14,3 @@ services:
       PG_DATA: /var/lib/postgresql/data
     env_file:
       - .env
-
