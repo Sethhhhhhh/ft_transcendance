@@ -19,9 +19,7 @@ export class UserController {
     }
 
     @Post()
-    async createUser(
-        @Body() userData: CreateUserDto
-    ): Promise<User> {
+    async createUser(@Body() userData: CreateUserDto): Promise<User> {
         const { username } = userData;
         return this.userService.createUser({
             username
@@ -31,7 +29,7 @@ export class UserController {
     @Put(':id')
     async updateUser(
         @Param('id') id: string,
-        @Body() data: UpdateUserDto    
+        @Body() data: UpdateUserDto
     ) : Promise<User> {
         const { username } = data;
         return this.userService.updateUser({

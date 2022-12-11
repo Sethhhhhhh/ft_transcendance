@@ -16,7 +16,7 @@ export class UserService {
         return this.prisma.user.findMany();
     }
 
-    async createUser(data: Prisma.UserCreateInput) : Promise<User> {
+    async create(data: Prisma.UserCreateInput) : Promise<User> {
         return this.prisma.user.create({
             data,
         });
@@ -35,5 +35,9 @@ export class UserService {
 
     async deleteUser(where: Prisma.UserWhereUniqueInput) : Promise<User> {
         return this.prisma.user.delete({ where });
+    }
+
+    async findByPayload(user: User) :Promise<User | null> {
+        return await this.prisma.user.findFirst({ where: user });
     }
 }
