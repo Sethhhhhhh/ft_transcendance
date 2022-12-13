@@ -11,6 +11,12 @@ export class AuthService {
         private readonly _jwtService: JwtService    
     ) {}
 
+    private _create_token(data: any) : string {
+        const payload = { email: data.email, sub: data.id };
+
+        return this._jwtService.sign(payload);
+    }
+
     async validateUser(email: string, password: string): Promise<any> {
         const user = await this._usersService.findOne({ email });
 
@@ -32,16 +38,10 @@ export class AuthService {
             throw new UnauthorizedException("Already exist");
         }
 
-        return this._jwtService.sign({
-            email: user.email,
-            sub: user.id
-        });
+        return this._create_token(user);
     }
 
-    async login(user: Partial<User>): Promise<string> {
-        return this._jwtService.sign({
-            email: user.email,
-            sub: user.id
-        });
+    login(user: Partial<User>): string {
+        return this._create_token(user);
     }
 }
