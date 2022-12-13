@@ -1,45 +1,47 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from "@prisma/client";
-import { PrismaService } from "src/prisma.service";
-import { LoginUserDto } from "src/user/dto/login-user";
-import { UserService } from "src/user/user.service";
-import { JwtPayload } from "./strategy/jwt.strategy";
+import { UsersService } from 'src/users/users.service';
+import * as bcrypt from 'bcrypt';
+import { Prisma, User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
     constructor(
-        private readonly user: UserService,
-        private readonly jwt: JwtService,
+        private readonly _usersService: UsersService,
+        private readonly _jwtService: JwtService    
     ) {}
 
-    async login(loginUserDto: LoginUserDto) : Promise<string> {
-        const user = await this.user.findByLogin(loginUserDto);
-        const token = this._createToken(user);
+    async validateUser(email: string, password: string): Promise<any> {
+        const user = await this._usersService.findOne({ email });
 
-        return token;
+        if (user && await bcrypt.compare(password, user.password)) {
+            const { password, ...result } = user;
+            return result;
+        }
+
+        return null;
     }
 
-    
-    async register(registerUserDto: CreateUserDto) {
-        const user = await this.user.create(registerUserDto);
-        const token = this._createToken(user);
-       
-        return token;
+    async register(userCreateInput: Prisma.UserCreateInput) : Promise<string> {
+        const { password } = userCreateInput;
+
+        userCreateInput.password = await bcrypt.hash(password, 10);
+
+        const user = await this._usersService.create(userCreateInput);
+        if (!user) {
+            throw new UnauthorizedException("Already exist");
+        }
+
+        return this._jwtService.sign({
+            email: user.email,
+            sub: user.id
+        });
     }
 
-    async validateUser(payload: JwtPayload) : Promise<User> {
-        const user = await this.user.findByPayload(payload);
-        
-        if (!user)
-            throw new HttpException("INVALID_TOKEN", HttpStatus.UNAUTHORIZED);
-        return user;
-    }
-
-    private _createToken({ username }): string {
-        const payload: JwtPayload = { username, auth: false };
-        const token = this.jwt.sign(payload);
-
-        return token;
+    async login(user: Partial<User>): Promise<string> {
+        return this._jwtService.sign({
+            email: user.email,
+            sub: user.id
+        });
     }
 }

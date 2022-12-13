@@ -16,20 +16,12 @@ let UserService = class UserService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async user(user) {
-        return this.prisma.user.findUnique({
-            where: user,
-        });
-    }
-    async users() {
-        return this.prisma.user.findMany();
-    }
-    async createUser(data) {
+    async create(data) {
         return this.prisma.user.create({
             data,
         });
     }
-    async updateUser(params) {
+    async update(params) {
         const { where, data } = params;
         return this.prisma.user.update({
             data,
@@ -38,6 +30,12 @@ let UserService = class UserService {
     }
     async deleteUser(where) {
         return this.prisma.user.delete({ where });
+    }
+    async findByPayload(id) {
+        return await this.prisma.user.findUnique({ where: { id } });
+    }
+    async findByLogin(email) {
+        return await this.prisma.user.findUnique({ where: { email } });
     }
 };
 UserService = __decorate([

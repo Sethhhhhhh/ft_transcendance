@@ -2,15 +2,22 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
 }
 
 model User {
-    id          Int     @default(autoincrement()) @id
-    username    String
+    id          Int         @default(autoincrement()) @id
+
+    username    String      
+    email       String      @unique
+    password    String      
+    isAuth      Boolean?    @default(false)
+    
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
 }
