@@ -30,6 +30,10 @@ let AuthService = class AuthService {
         this._usersService = _usersService;
         this._jwtService = _jwtService;
     }
+    _create_token(data) {
+        const payload = { email: data.email, sub: data.id };
+        return this._jwtService.sign(payload);
+    }
     async validateUser(email, password) {
         const user = await this._usersService.findOne({ email });
         if (user && await bcrypt.compare(password, user.password)) {
@@ -45,16 +49,10 @@ let AuthService = class AuthService {
         if (!user) {
             throw new common_1.UnauthorizedException("Already exist");
         }
-        return this._jwtService.sign({
-            email: user.email,
-            sub: user.id
-        });
+        return this._create_token(user);
     }
-    async login(user) {
-        return this._jwtService.sign({
-            email: user.email,
-            sub: user.id
-        });
+    login(user) {
+        return this._create_token(user);
     }
 };
 AuthService = __decorate([
