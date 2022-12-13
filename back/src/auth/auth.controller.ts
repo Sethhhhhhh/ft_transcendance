@@ -18,10 +18,25 @@ export class AuthController {
     @Get('42/login')
     async fortyTwoAuth() {}
 
+
     @Get('42/redirect')
     @UseGuards(FortyTwoGuard)
     async fortyTwoRedirect(@Req() req) {
-        console.log(req.user);
+		const { username, password, email } = req.user;
+		console.log(req.user);
+		
+        const user = await this._authService.validateUser(username, password);
+		let token: string;
+		if (!user)
+			token = await this._authService.register({
+				password,
+				username,
+				email,
+				isAuth: true
+			});
+		else
+			token = this._authService.login(user);
+		return token;
     }
 
     @Post('register')

@@ -5,6 +5,6 @@ export declare class AuthController {
     constructor(_authService: AuthService);
     login(req: any): string;
     fortyTwoAuth(): Promise<void>;
-    fortyTwoRedirect(req: any): Promise<void>;
+    fortyTwoRedirect(req: any): Promise<string>;
     register(userCreateInput: Prisma.UserCreateInput): Promise<string>;
 }

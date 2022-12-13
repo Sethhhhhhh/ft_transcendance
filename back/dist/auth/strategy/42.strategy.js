@@ -22,9 +22,10 @@ let FortyTwoStrategy = class FortyTwoStrategy extends (0, passport_1.PassportStr
         });
     }
     async validate(accessToken, refreshToken, profile) {
+        const { username, emails } = profile;
         const user = {
-            email: profile.emails[0],
-            username: profile.username,
+            email: emails[0].value,
+            username: username,
             password: '',
             isAuth: true
         };

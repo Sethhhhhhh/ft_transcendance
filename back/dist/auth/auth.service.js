@@ -36,15 +36,25 @@ let AuthService = class AuthService {
     }
     async validateUser(email, password) {
         const user = await this._usersService.findOne({ email });
-        if (user && await bcrypt.compare(password, user.password)) {
+        if (!user)
+            return null;
+        if (user.isAuth === false) {
+            if (await bcrypt.compare(password, user.password)) {
+                const { password } = user, result = __rest(user, ["password"]);
+                return result;
+            }
+            else
+                return null;
+        }
+        else {
             const { password } = user, result = __rest(user, ["password"]);
             return result;
         }
-        return null;
     }
     async register(userCreateInput) {
-        const { password } = userCreateInput;
-        userCreateInput.password = await bcrypt.hash(password, 10);
+        const { password, isAuth } = userCreateInput;
+        if (!isAuth)
+            userCreateInput.password = await bcrypt.hash(password, 10);
         const user = await this._usersService.create(userCreateInput);
         if (!user) {
             throw new common_1.UnauthorizedException("Already exist");

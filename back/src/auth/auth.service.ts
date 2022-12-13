@@ -20,18 +20,26 @@ export class AuthService {
     async validateUser(email: string, password: string): Promise<any> {
         const user = await this._usersService.findOne({ email });
 
-        if (user && await bcrypt.compare(password, user.password)) {
-            const { password, ...result } = user;
-            return result;
-        }
+		if (!user)
+			return null;
 
-        return null;
+		if (user.isAuth === false) {
+			if (await bcrypt.compare(password, user.password)) {
+				const { password, ...result } = user;
+				return result;
+			} else
+				return null;
+		} else {
+			const { password, ...result } = user;
+			return result;
+		}
     }
 
     async register(userCreateInput: Prisma.UserCreateInput) : Promise<string> {
-        const { password } = userCreateInput;
+        const { password, isAuth } = userCreateInput;
 
-        userCreateInput.password = await bcrypt.hash(password, 10);
+		if (!isAuth)
+        	userCreateInput.password = await bcrypt.hash(password, 10);
 
         const user = await this._usersService.create(userCreateInput);
         if (!user) {

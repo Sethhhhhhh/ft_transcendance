@@ -27,7 +27,20 @@ let AuthController = class AuthController {
     }
     async fortyTwoAuth() { }
     async fortyTwoRedirect(req) {
+        const { username, password, email } = req.user;
         console.log(req.user);
+        const user = await this._authService.validateUser(username, password);
+        let token;
+        if (!user)
+            token = await this._authService.register({
+                password,
+                username,
+                email,
+                isAuth: true
+            });
+        else
+            token = this._authService.login(user);
+        return token;
     }
     async register(userCreateInput) {
         return await this._authService.register(userCreateInput);
