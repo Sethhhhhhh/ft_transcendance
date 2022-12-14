@@ -34,11 +34,11 @@ let AuthService = class AuthService {
         const payload = { email: data.email, sub: data.id };
         return this._jwtService.sign(payload);
     }
-    async validateUser(email, password) {
+    async validateUser(email, password, isAuth) {
         const user = await this._usersService.findOne({ email });
         if (!user)
             return null;
-        if (user.isAuth === false) {
+        if (!user.isAuth && !isAuth) {
             if (await bcrypt.compare(password, user.password)) {
                 const { password } = user, result = __rest(user, ["password"]);
                 return result;
@@ -46,7 +46,7 @@ let AuthService = class AuthService {
             else
                 return null;
         }
-        else {
+        else if (isAuth) {
             const { password } = user, result = __rest(user, ["password"]);
             return result;
         }
@@ -55,11 +55,13 @@ let AuthService = class AuthService {
         const { password, isAuth } = userCreateInput;
         if (!isAuth)
             userCreateInput.password = await bcrypt.hash(password, 10);
-        const user = await this._usersService.create(userCreateInput);
-        if (!user) {
+        try {
+            const user = await this._usersService.create(userCreateInput);
+            return this._create_token(user);
+        }
+        catch (err) {
             throw new common_1.UnauthorizedException("Already exist");
         }
-        return this._create_token(user);
     }
     login(user) {
         return this._create_token(user);

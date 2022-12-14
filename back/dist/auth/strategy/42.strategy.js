@@ -26,8 +26,7 @@ let FortyTwoStrategy = class FortyTwoStrategy extends (0, passport_1.PassportStr
         const user = {
             email: emails[0].value,
             username: username,
-            password: '',
-            isAuth: true
+            password: ''
         };
         return user;
     }

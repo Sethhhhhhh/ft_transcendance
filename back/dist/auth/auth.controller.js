@@ -14,7 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
-const client_1 = require("@prisma/client");
+const auth_dto_1 = require("./auth.dto");
 const auth_service_1 = require("./auth.service");
 const _42_auth_guards_1 = require("./guard/42-auth.guards");
 const local_auth_guards_1 = require("./guard/local-auth.guards");
@@ -25,25 +25,17 @@ let AuthController = class AuthController {
     login(req) {
         return this._authService.login(req);
     }
-    async fortyTwoAuth() { }
+    fortyTwoAuth() { }
     async fortyTwoRedirect(req) {
-        const { username, password, email } = req.user;
-        console.log(req.user);
-        const user = await this._authService.validateUser(username, password);
-        let token;
+        const { username, password, email } = req === null || req === void 0 ? void 0 : req.user;
+        const user = await this._authService.validateUser(email, password, true);
         if (!user)
-            token = await this._authService.register({
-                password,
-                username,
-                email,
-                isAuth: true
-            });
+            return this._authService.register({ password, username, email, isAuth: true });
         else
-            token = this._authService.login(user);
-        return token;
+            return this._authService.login(user);
     }
     async register(userCreateInput) {
-        return await this._authService.register(userCreateInput);
+        return this._authService.register(Object.assign({ isAuth: false }, userCreateInput));
     }
 };
 __decorate([
@@ -59,7 +51,7 @@ __decorate([
     (0, common_1.Get)('42/login'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
+    __metadata("design:returntype", void 0)
 ], AuthController.prototype, "fortyTwoAuth", null);
 __decorate([
     (0, common_1.Get)('42/redirect'),
@@ -73,7 +65,7 @@ __decorate([
     (0, common_1.Post)('register'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [auth_dto_1.CreateUserDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
 AuthController = __decorate([

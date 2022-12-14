@@ -22,8 +22,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
         const user = {
             email: emails[0].value,
             username: username,
-            password: '',
-            isAuth: true
+            password: ''
         }
 
         return user;
