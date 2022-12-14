@@ -6,23 +6,16 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppModule = void 0;
+exports.FileSizeValidationPipe = void 0;
 const common_1 = require("@nestjs/common");
-const auth_module_1 = require("./auth/auth.module");
-const users_module_1 = require("./users/users.module");
-const avatar_module_1 = require("./avatar/avatar.module");
-let AppModule = class AppModule {
+let FileSizeValidationPipe = class FileSizeValidationPipe {
+    transform(value, metadata) {
+        const oneKb = 1000;
+        return value.size < oneKb;
+    }
 };
-AppModule = __decorate([
-    (0, common_1.Module)({
-        imports: [
-            users_module_1.UsersModule,
-            auth_module_1.AuthModule,
-            avatar_module_1.AvatarModule
-        ],
-        controllers: [],
-        providers: [],
-    })
-], AppModule);
-exports.AppModule = AppModule;
-//# sourceMappingURL=app.module.js.map
+FileSizeValidationPipe = __decorate([
+    (0, common_1.Injectable)()
+], FileSizeValidationPipe);
+exports.FileSizeValidationPipe = FileSizeValidationPipe;
+//# sourceMappingURL=avatar.validation.js.map
