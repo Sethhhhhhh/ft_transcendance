@@ -13,8 +13,8 @@ import { LocalStrategy } from './strategy/local.strategy';
         UsersModule,
         PassportModule,
         JwtModule.register({
-            secret: 'secret',
-            signOptions: { expiresIn: '60s' }
+            secret: 'wartek',
+            signOptions: { expiresIn: '1h'}
         }),
     ],
     controllers: [AuthController],

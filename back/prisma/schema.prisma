@@ -11,13 +11,29 @@ datasource db {
 }
 
 model User {
-    id          Int         @default(autoincrement()) @id
+    id                String           @id @default(cuid())
+    username          String           @unique
+    email             String           @unique
+    password          String
+    level             Int              @default(1)
+    isAuth            Boolean          @default(false)
 
-    username    String      
-    email       String      @unique
-    password    String      
-    isAuth      Boolean?    @default(false)
-    
-    createdAt   DateTime    @default(now())
-    updatedAt   DateTime    @updatedAt
+    avatar            String           @default("default.png")
+
+    // friends           Friend[]         @relation("friends")
+    // friendsRequests   Friend[]         @relation("friendsRequests")
 }
+
+// model Friend {
+//     id              String          @id @default(cuid())
+    
+//     sender          User            @relation("friends", fields: [senderId], references: [id])
+//     senderId        String
+
+//     receiver        User            @relation("friendsRequests", fields: [receiverId], references: [id])
+//     receiverId      String  
+
+//     accepted        Boolean         @default(false)
+
+//     @@unique([senderId, receiverId])
+// }

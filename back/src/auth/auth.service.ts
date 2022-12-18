@@ -3,16 +3,17 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { Prisma, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { CreateUserDto } from './auth.dto';
 
 @Injectable()
 export class AuthService {
     constructor(
-        private readonly _usersService: UsersService,
-        private readonly _jwtService: JwtService    
+        private _usersService: UsersService,
+        private _jwtService: JwtService    
     ) {}
 
     private _create_token(data: any) : string {
-        const payload = { email: data.email, sub: data.id };
+        const payload = { email: data.email, id: data.id };
 
         return this._jwtService.sign(payload);
     }
@@ -35,7 +36,7 @@ export class AuthService {
 		}
     }
 
-    async register(userCreateInput: Prisma.UserCreateInput) : Promise<string> {
+    async register(userCreateInput: CreateUserDto) : Promise<string> {
         const { password, isAuth } = userCreateInput;
 
 		if (!isAuth)
@@ -45,6 +46,7 @@ export class AuthService {
             const user = await this._usersService.create(userCreateInput);
             return this._create_token(user);
         } catch(err) {
+            console.log(err);
             throw new UnauthorizedException("Already exist");
         }
 

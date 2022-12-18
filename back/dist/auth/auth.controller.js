@@ -18,24 +18,28 @@ const auth_dto_1 = require("./auth.dto");
 const auth_service_1 = require("./auth.service");
 const _42_auth_guards_1 = require("./guard/42-auth.guards");
 const local_auth_guards_1 = require("./guard/local-auth.guards");
+const utils_1 = require("../utils");
 let AuthController = class AuthController {
     constructor(_authService) {
         this._authService = _authService;
     }
     login(req) {
-        return this._authService.login(req);
+        return this._authService.login(req.user);
     }
     fortyTwoAuth() { }
     async fortyTwoRedirect(req) {
-        const { username, password, email } = req === null || req === void 0 ? void 0 : req.user;
+        const { username, password, email, imageURL } = req.user;
         const user = await this._authService.validateUser(email, password, true);
-        if (!user)
-            return this._authService.register({ password, username, email, isAuth: true });
+        if (!user) {
+            const avatar = await (0, utils_1.downloadImageAndSave)(imageURL);
+            return this._authService.register({ password, username, email, isAuth: true, avatar });
+        }
         else
             return this._authService.login(user);
     }
     async register(userCreateInput) {
-        return this._authService.register(Object.assign({ isAuth: false }, userCreateInput));
+        const token = await this._authService.register(Object.assign({ isAuth: false }, userCreateInput));
+        return token;
     }
 };
 __decorate([
@@ -48,7 +52,7 @@ __decorate([
 ], AuthController.prototype, "login", null);
 __decorate([
     (0, common_1.UseGuards)(_42_auth_guards_1.FortyTwoGuard),
-    (0, common_1.Get)('42/login'),
+    (0, common_1.Get)('42'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)

@@ -31,7 +31,7 @@ let AuthService = class AuthService {
         this._jwtService = _jwtService;
     }
     _create_token(data) {
-        const payload = { email: data.email, sub: data.id };
+        const payload = { email: data.email, id: data.id };
         return this._jwtService.sign(payload);
     }
     async validateUser(email, password, isAuth) {
@@ -60,6 +60,7 @@ let AuthService = class AuthService {
             return this._create_token(user);
         }
         catch (err) {
+            console.log(err);
             throw new common_1.UnauthorizedException("Already exist");
         }
     }

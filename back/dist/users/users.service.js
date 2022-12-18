@@ -16,6 +16,22 @@ let UsersService = class UsersService {
     constructor(_prismaService) {
         this._prismaService = _prismaService;
     }
+    async getAvatar(id) {
+        const user = await this._prismaService.user.findUnique({ where: { id: id } });
+        return user.avatar;
+    }
+    async setAvatar(id, avatar) {
+        return this._prismaService.user.update({
+            where: { id },
+            data: { avatar }
+        });
+    }
+    async updateUsername(id, username) {
+        return this._prismaService.user.update({
+            where: { id },
+            data: { username }
+        });
+    }
     async create(data) {
         return this._prismaService.user.create({ data });
     }

@@ -1,6 +1,6 @@
 version: "3"
 
-services:
+services: 
   db:
     image: postgres:latest
     container_name: database
@@ -14,3 +14,11 @@ services:
       PG_DATA: /var/lib/postgresql/data
     env_file:
       - .env
+
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "8080:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: yohannvia@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: seth

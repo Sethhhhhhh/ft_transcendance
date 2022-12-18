@@ -10,7 +10,6 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const auth_module_1 = require("./auth/auth.module");
 const users_module_1 = require("./users/users.module");
-const avatar_module_1 = require("./avatar/avatar.module");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
@@ -18,7 +17,6 @@ AppModule = __decorate([
         imports: [
             users_module_1.UsersModule,
             auth_module_1.AuthModule,
-            avatar_module_1.AvatarModule
         ],
         controllers: [],
         providers: [],
