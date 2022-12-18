@@ -24,7 +24,11 @@ export class UsersController {
     async setUsername(@Req() req: Request, @Body('username') username: string) {
         const { id } = req.user as User;
 
-        return this._usersService.updateUsername(id, username);
+        const user = await this._usersService.updateUsername(id, username); 
+        if (!user)
+            throw new BadRequestException('Username already taken');
+
+        return user;
     }
 
     @Get(':id/avatar')
@@ -99,4 +103,11 @@ export class UsersController {
         await this._usersService.setAvatar(id, avatar.filename);
     }
 
+    @Post(':id/experience')
+    async setExperience(
+        @Param('id') id: Prisma.UserWhereUniqueInput['id'],
+        @Body('point') point: number
+    ): Promise<User> {
+        return this._usersService.addExperience(id, point);
+    }
 }

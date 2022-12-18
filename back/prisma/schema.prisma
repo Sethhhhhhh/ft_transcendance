@@ -15,10 +15,13 @@ model User {
     username          String           @unique
     email             String           @unique
     password          String
-    level             Int              @default(1)
     isAuth            Boolean          @default(false)
 
     avatar            String           @default("default.png")
+
+    level             Int              @default(0)
+    experience        Int              @default(0)
+    nextLevel         Int              @default(100)
 
     // friends           Friend[]         @relation("friends")
     // friendsRequests   Friend[]         @relation("friendsRequests")
