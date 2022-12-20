@@ -1,58 +1,145 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
-import { Prisma, User } from '@prisma/client';
+import { token, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from './auth.dto';
+import { randomBytes } from 'crypto';
+import { PrismaService } from 'src/prisma.service';
+import { MailerService } from '@nestjs-modules/mailer';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
     constructor(
-        private _usersService: UsersService,
-        private _jwtService: JwtService    
+        private readonly _usersService: UsersService,
+        private readonly _jwtService: JwtService,
+        private readonly _prismaService: PrismaService,
+        private readonly _mailerService: MailerService,
     ) {}
 
-    private _create_token(data: any) : string {
-        const payload = { email: data.email, id: data.id };
+    
+    private async _sendResetPasswordEmail(email: string, token: string) : Promise<string> {
+        try {
+            await this._mailerService.sendMail({
+                to: email,
+                from: '',
+                subject: 'Reset password',
+                text: 'Reset Password',
+                html: `<h1>Reset Password</h1>
+                <p>Hello,</p>
+                <p>You have requested to reset your password. To reset your password, click on the following link:</p>
+                <p><a href="http://localhost:8080/reset-password?token=${token}">Reset my password</a></p>
+                <p>If you did not request a password reset, please ignore this email.</p>
+                <p>Best regards,</p>
+                <p>The support team</p>`,
+            });
 
-        return this._jwtService.sign(payload);
+            return token;
+        } catch (err) {
+            throw new InternalServerErrorException("Email not sent");
+        }
     }
-
+  
+    createJwtToken(data: any) : string {
+        return this._jwtService.sign({ email: data.email, id: data.id });
+    }
+    
     async validateUser(email: string, password: string, isAuth: boolean): Promise<any> {
-        const user = await this._usersService.findOne({ email });
+        try {
+            const user: (User | null) = await this._usersService.findOne({ email });
 
-        if (!user)
-			return null;
+            if (!user)
+                return null;
 
-		if (!user.isAuth && !isAuth) {
-			if (await bcrypt.compare(password, user.password)) {
-				const { password, ...result } = user;
-				return result;
-			} else
-				return null;
-		} else if (isAuth) {
-			const { password, ...result } = user;
-			return result;
-		}
+                console.log(user.isAuth);
+                console.log(isAuth);
+
+
+            if (!isAuth) {
+                if (!user.isAuth) {
+                    if (await bcrypt.compare(password, user.password)) {
+                        delete user.password;
+                        return user;
+                    }
+                    throw new UnauthorizedException("Wrong password");
+                } else throw new UnauthorizedException("Unauthorized to login without OAuth");
+            } else {
+                delete user.password;
+                return user;
+            }
+        }
+        catch(err) {
+            if (err instanceof UnauthorizedException)
+                throw err;
+        }
     }
 
     async register(userCreateInput: CreateUserDto) : Promise<string> {
         const { password, isAuth } = userCreateInput;
 
-		if (!isAuth)
-        	userCreateInput.password = await bcrypt.hash(password, 10);
-
         try {
-            const user = await this._usersService.create(userCreateInput);
-            return this._create_token(user);
-        } catch(err) {
-            console.log(err);
-            throw new UnauthorizedException("Already exist");
-        }
+            let user: User;
 
+            if (!isAuth) {
+                const hash: string = await bcrypt.hash(password, 10);
+                user = await this._usersService.create({ ...userCreateInput, password: hash});
+            } else
+                user = await this._usersService.create(userCreateInput);
+            
+            return this.createJwtToken(user);
+        } catch(err) {
+            throw new UnauthorizedException("User already exist");
+        }
     }
 
-    login(user: Partial<User>): string {
-        return this._create_token(user);
+    async forgotPassword(email: string) : Promise<string> {
+        try {
+            const user: (User | null) = await this._usersService.findOne({ email });
+            if (!user)
+                throw new UnauthorizedException("User not found");
+            
+            const tokenData: token = await this._prismaService.token.findUnique({ where: { userId: user.id } });
+            
+            if (!tokenData) {
+                const token: string = randomBytes(20).toString('hex');
+                const tokenData: token = await this._prismaService.token.create({ data: { token, user: { connect: { id: user.id } } } });
+                
+                if (!tokenData)
+                    throw new InternalServerErrorException("Token not created");
+                
+                    return this._sendResetPasswordEmail(email, token);
+            }
+
+            return this._sendResetPasswordEmail(email, tokenData.token);
+        } catch (err) {
+            if (err instanceof UnauthorizedException)
+                throw err;
+            throw new InternalServerErrorException("Internal server error");
+        }
+    }
+
+    async resetPassword(token: string, password: string) : Promise<string> {
+        try {
+            const tokenData: (token | null) = await this._prismaService.token.findUnique({ where: { token } });
+    
+            if (!tokenData)
+                throw new UnauthorizedException("Token not found");
+            
+            const user: (User | null) = await this._usersService.update(
+                { id: tokenData.userId },
+                { password: await bcrypt.hash(password, 10) }
+            );
+    
+            if (!user)
+                throw new UnauthorizedException("User not found");
+    
+            await this._prismaService.token.delete({ where: { token } });
+    
+            return this.createJwtToken(user);
+        } catch(err) {
+            if (err instanceof UnauthorizedException)
+                throw err;
+            throw new InternalServerErrorException("Internal server error");
+        }
     }
 }

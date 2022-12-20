@@ -1,12 +1,10 @@
-import { Controller, Post, UseGuards, Body, Req, Get } from "@nestjs/common";
-import { CreateUserDto } from "./auth.dto";
+import { Controller, Post, UseGuards, Body, Req, Get, Param } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { FortyTwoGuard } from "./guard/42-auth.guards";
 import { LocalAuthGuard } from "./guard/local-auth.guards";
-
-import * as fs from 'fs';
-import * as url from 'url';
 import { downloadImageAndSave } from "src/utils";
+import { Request } from "express";
+import { CreateUserDto } from "./dto/create-user.dto";
 
 @Controller("auth")
 export class AuthController {
@@ -14,8 +12,8 @@ export class AuthController {
 
     @UseGuards(LocalAuthGuard)
     @Post('login')
-    login(@Req() req) {
-        return this._authService.login(req.user);
+    login(@Req() req: Request) {
+        return req?.user;
     }
 
     @UseGuards(FortyTwoGuard)
@@ -32,12 +30,21 @@ export class AuthController {
             const avatar = await downloadImageAndSave(imageURL);
 			return this._authService.register({password, username, email, isAuth: true, avatar });
         } else
-            return this._authService.login(user);
+            return this._authService.createJwtToken(user);
     }
 
     @Post('register')
     async register(@Body() userCreateInput: CreateUserDto) {
-        const token = await this._authService.register({ isAuth: false, ...userCreateInput });
-        return token;
+        return this._authService.register({ isAuth: false, ...userCreateInput });;
+    }
+
+    @Post('forgot-password')
+    async forgotPassword(@Body('email') email: string) {
+        return this._authService.forgotPassword(email);
+    }
+
+    @Get('reset-password/:token')
+    async resetPassword(@Param('token') token: string, @Body('password') password: string) {
+        return this._authService.resetPassword(token, password);
     }
 }

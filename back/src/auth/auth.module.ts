@@ -1,6 +1,8 @@
+import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { PrismaService } from 'src/prisma.service';
 import { UsersModule } from 'src/users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -16,9 +18,19 @@ import { LocalStrategy } from './strategy/local.strategy';
             secret: 'wartek',
             signOptions: { expiresIn: '1h'}
         }),
+        MailerModule.forRoot({
+            transport: {
+                host: 'smtp.mailtrap.io',
+                port: 2525,
+                auth: {
+                    user: '',
+                    pass: '',
+                },
+            }
+        }),
     ],
     controllers: [AuthController],
-    providers: [AuthService, LocalStrategy, JwtStrategy, FortyTwoStrategy],
+    providers: [AuthService, LocalStrategy, JwtStrategy, FortyTwoStrategy, PrismaService],
     exports: [AuthService]
 })
 export class AuthModule {}

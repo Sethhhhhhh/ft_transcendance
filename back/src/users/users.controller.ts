@@ -7,7 +7,6 @@ import { diskStorage } from 'multer';
 import { extname, resolve } from 'path';
 import { JwtAuthGuard } from './guard/jwt.guard';
 import { UsersService } from './users.service';
-import * as fs from 'fs';
 
 @Controller('users')
 export class UsersController {
@@ -24,11 +23,7 @@ export class UsersController {
     async setUsername(@Req() req: Request, @Body('username') username: string) {
         const { id } = req.user as User;
 
-        const user = await this._usersService.updateUsername(id, username); 
-        if (!user)
-            throw new BadRequestException('Username already taken');
-
-        return user;
+        return this._usersService.update({ id }, { username });
     }
 
     @Get(':id/avatar')
@@ -60,7 +55,7 @@ export class UsersController {
                         .fill(null)
                         .map(() => Math.round(Math.random() * 16).toString(16))
                         .join('');
-                    return cb(null, `${randomName}${extname(file.filename)}`);
+                    return cb(null, `${randomName}${extname(file.originalname)}`);
                 }
             }),
             limits: {
@@ -85,22 +80,8 @@ export class UsersController {
         @Req() req: Request,
         @UploadedFile() avatar: Express.Multer.File,
     ) {
-        if (!avatar || !avatar.filename)
-            throw new BadRequestException('No file was uploaded');
-
         const { id } = req.user as User;
-        const olderAvatar = await this._usersService.getAvatar(id);
-
-        if (olderAvatar) {
-            const filePath = resolve('./data/avatars', olderAvatar);
-            fs.unlink(filePath, (err) => {
-                if (err) {
-                    console.log(err);
-                }
-            });
-        }
-        
-        await this._usersService.setAvatar(id, avatar.filename);
+        return this._usersService.setAvatar(id, avatar);    
     }
 
     @Post(':id/experience')

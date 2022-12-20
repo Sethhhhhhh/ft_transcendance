@@ -2,41 +2,33 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+	provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+	provider = "postgresql"
+	url      = env("DATABASE_URL")
 }
 
 model User {
-    id                String           @id @default(cuid())
-    username          String           @unique
-    email             String           @unique
-    password          String
-    isAuth            Boolean          @default(false)
+	id				Int					@id @default(autoincrement())
+	username		String				@unique
+	email			String				@unique
+	password		String
+	isAuth			Boolean				@default(false)
 
-    avatar            String           @default("default.png")
+	avatar			String				@default("default.png")
 
-    level             Int              @default(0)
-    experience        Int              @default(0)
-    nextLevel         Int              @default(100)
+	level			Int					@default(0)
+	experience		Int					@default(0)
+	nextLevel		Int					@default(100)
 
-    // friends           Friend[]         @relation("friends")
-    // friendsRequests   Friend[]         @relation("friendsRequests")
+	token	        token?
 }
 
-// model Friend {
-//     id              String          @id @default(cuid())
-    
-//     sender          User            @relation("friends", fields: [senderId], references: [id])
-//     senderId        String
-
-//     receiver        User            @relation("friendsRequests", fields: [receiverId], references: [id])
-//     receiverId      String  
-
-//     accepted        Boolean         @default(false)
-
-//     @@unique([senderId, receiverId])
-// }
+model token {
+	id				Int					@id	@default(autoincrement())
+	token			String				@unique
+	user			User				@relation(fields: [userId], references: [id])
+	userId			Int					@unique
+}

@@ -22,8 +22,3 @@ export class CreateUserDto {
     @IsString()
     avatar: string;
 }
-
-export class JwtPayload {
-    id: number;
-    email: string;
-}
