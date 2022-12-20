@@ -97,7 +97,7 @@ export class UsersController {
     @Post('sendFriendRequest')
     async sendFriendRequest(
         @Req() req: Request,
-        @Body('friendId') friendId: number
+        @Body('friendId') friendId: string
     ): Promise<Friend> {
         const { id } = req.user as User;
         return this._usersService.sendFriendRequest(id, friendId);
@@ -107,7 +107,7 @@ export class UsersController {
     @Post('acceptFriendRequest')
     async acceptFriendRequest(
         @Req() req: Request,
-        @Body('friendId') friendId: number
+        @Body('friendId') friendId: string
     ): Promise<Friend> {
         const { id } = req.user as User;
         return this._usersService.acceptFriendRequest(id, friendId);

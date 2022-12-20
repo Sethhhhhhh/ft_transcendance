@@ -19,7 +19,7 @@ export class UsersService {
         id: Prisma.UserWhereUniqueInput['id']
     ) : Promise<string> {
         try {
-            const user: User = await this._prismaService.user.findUnique({ where: { id: Number(id) } })
+            const user: User = await this._prismaService.user.findUnique({ where: { id } })
             if (!user)
                 return null;
 
@@ -45,7 +45,7 @@ export class UsersService {
             }
 
             const user: (User | null) = await this._prismaService.user.update({
-                where: { id: Number(id) },
+                where: { id },
                 data: { avatar: avatar.filename }
             });
 
@@ -62,7 +62,7 @@ export class UsersService {
         point: number
     ) : Promise<User> {
         try {
-            const user: User = await this._prismaService.user.findUnique({ where: { id: Number(id) } });
+            const user: User = await this._prismaService.user.findUnique({ where: { id } });
 
             if (!user)
                 throw new UnauthorizedException('User not found');
@@ -71,7 +71,7 @@ export class UsersService {
 
             if (newExperience >= user.nextLevel) {
                 return this._prismaService.user.update({
-                    where: { id: Number(id) },
+                    where: { id },
                     data: {
                         experience: newExperience - user.nextLevel,
                         level: user.level + 1,
@@ -80,7 +80,7 @@ export class UsersService {
                 });
             } else {
                 return this._prismaService.user.update({
-                    where: { id: Number(id) },
+                    where: { id },
                     data: { experience: newExperience }
                 });
             }
@@ -96,7 +96,7 @@ export class UsersService {
         winner: boolean
     ) : Promise<User> {
         try {
-            const user: User = await this._prismaService.user.findUnique({ where: { id: Number(id) } });
+            const user: User = await this._prismaService.user.findUnique({ where: { id } });
 
             if (!user)
                 throw new UnauthorizedException('User not found');
@@ -104,7 +104,7 @@ export class UsersService {
             const point = winner ? this._rankPointGain : -this._rankPointGain;
 
             return this._prismaService.user.update({
-                where: { id: Number(id) },
+                where: { id },
                 data: { rankPoint: user.rankPoint + point }
             });
         } catch(err) {
@@ -119,20 +119,20 @@ export class UsersService {
         receiverID: Prisma.UserWhereUniqueInput['id']
     ) : Promise<Friend> {
         try {
-            const user: User = await this._prismaService.user.findUnique({ where: { id: Number(senderID) } });
+            const user: User = await this._prismaService.user.findUnique({ where: { id: senderID } });
 
             if (!user)
                 throw new UnauthorizedException('User not found');
             
-            const friend: User = await this._prismaService.user.findUnique({ where: { id: Number(receiverID) } });
+            const friend: User = await this._prismaService.user.findUnique({ where: { id: receiverID } });
 
             if (!friend)
                 throw new UnauthorizedException('Friend not found');
             
             const friendRequest = await this._prismaService.friend.create({
                 data: {
-                    sender: { connect: { id: Number(senderID) } },
-                    receiver: { connect: { id: Number(receiverID) } }
+                    sender: { connect: { id: senderID } },
+                    receiver: { connect: { id: receiverID } }
                 }
             });
 
@@ -154,8 +154,8 @@ export class UsersService {
             const friend = await this._prismaService.friend.update({
                 where: {
                     senderId_receiverId: {
-                        senderId: Number(senderID),
-                        receiverId: Number(receiverID)
+                        senderId: senderID,
+                        receiverId: receiverID
                     }
                 },
                 data: { accepted: true }
@@ -176,7 +176,7 @@ export class UsersService {
         try {
             const friends: (Friend[] | null) = await this._prismaService.friend.findMany({
                 where: {
-                    receiverId: Number(id),
+                    receiverId: id,
                     accepted: request
                 }
             });

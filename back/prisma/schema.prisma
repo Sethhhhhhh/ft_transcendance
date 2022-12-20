@@ -11,43 +11,48 @@ datasource db {
 }
 
 model User {
-	id				Int					@id @default(autoincrement())
-	username		String				@unique
-	email			String				@unique
+	id				String			@id @default(cuid())
+	username		String			@unique
+	email			String			@unique
 	password		String
-	isAuth			Boolean				@default(false)
-
-	avatar			String				@default("default.png")
-
-	level			Int					@default(0)
-	experience		Int					@default(0)
-	nextLevel		Int					@default(100)
-
-	rankPoint       Int                 @default(0)
-
+	isAuth			Boolean			@default(false)
+	avatar			String?
+	status          Status          @default(OFFLINE)
+	level			Int			    @default(0)
+	experience		Int			    @default(0)
+	nextLevel		Int			    @default(100)
+	rankPoint       Int             @default(0)
 	token	        Token?
+	friends			Friend[]		@relation("friends")
+	friendsRequests	Friend[]		@relation("friendsRequests")
 
-	friends			Friend[]			@relation("friends")
-	friendsRequests	Friend[]			@relation("friendsRequests")
+	@@map("users")
 }
 
 model Token {
-	id				Int					@id	@default(autoincrement())
-	token			String				@unique
-	user			User				@relation(fields: [userId], references: [id])
-	userId			Int					@unique
+	id				String			@id	@default(cuid())
+	token			String			@unique
+	user			User			@relation(fields: [userId], references: [id])
+	userId			String			@unique
+
+	@@map("tokens")
 }
 
 model Friend {
-	id              Int             @id @default(autoincrement())
-	
+	id              String          @id @default(cuid())
 	sender          User           	@relation("friends", fields: [senderId], references: [id])
-	senderId        Int
-
+	senderId        String
 	receiver        User            @relation("friendsRequests", fields: [receiverId], references: [id])
-	receiverId      Int  
-
+	receiverId      String  
 	accepted        Boolean         @default(false)
 
 	@@unique([senderId, receiverId])
+}
+
+enum Status {
+	OFFLINE @map("offline")
+	ONLINE  @map("online")
+	INGAME  @map("ingame")
+
+	@@map("_status")
 }
