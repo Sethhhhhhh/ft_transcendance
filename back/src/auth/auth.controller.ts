@@ -13,7 +13,8 @@ export class AuthController {
     @UseGuards(LocalAuthGuard)
     @Post('login')
     login(@Req() req: Request) {
-        return req?.user;
+        if (req.user)
+            return this._authService.createJwtToken(req.user);
     }
 
     @UseGuards(FortyTwoGuard)

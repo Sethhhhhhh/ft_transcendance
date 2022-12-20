@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
-import { token, User } from '@prisma/client';
+import { Token, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { PrismaService } from 'src/prisma.service';
@@ -51,10 +51,6 @@ export class AuthService {
             if (!user)
                 return null;
 
-                console.log(user.isAuth);
-                console.log(isAuth);
-
-
             if (!isAuth) {
                 if (!user.isAuth) {
                     if (await bcrypt.compare(password, user.password)) {
@@ -98,11 +94,11 @@ export class AuthService {
             if (!user)
                 throw new UnauthorizedException("User not found");
             
-            const tokenData: token = await this._prismaService.token.findUnique({ where: { userId: user.id } });
+            const tokenData: Token = await this._prismaService.token.findUnique({ where: { userId: user.id } });
             
             if (!tokenData) {
                 const token: string = randomBytes(20).toString('hex');
-                const tokenData: token = await this._prismaService.token.create({ data: { token, user: { connect: { id: user.id } } } });
+                const tokenData: Token = await this._prismaService.token.create({ data: { token, user: { connect: { id: user.id } } } });
                 
                 if (!tokenData)
                     throw new InternalServerErrorException("Token not created");
@@ -120,7 +116,7 @@ export class AuthService {
 
     async resetPassword(token: string, password: string) : Promise<string> {
         try {
-            const tokenData: (token | null) = await this._prismaService.token.findUnique({ where: { token } });
+            const tokenData: (Token | null) = await this._prismaService.token.findUnique({ where: { token } });
     
             if (!tokenData)
                 throw new UnauthorizedException("Token not found");

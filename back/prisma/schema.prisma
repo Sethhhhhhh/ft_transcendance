@@ -23,12 +23,31 @@ model User {
 	experience		Int					@default(0)
 	nextLevel		Int					@default(100)
 
-	token	        token?
+	rankPoint       Int                 @default(0)
+
+	token	        Token?
+
+	friends			Friend[]			@relation("friends")
+	friendsRequests	Friend[]			@relation("friendsRequests")
 }
 
-model token {
+model Token {
 	id				Int					@id	@default(autoincrement())
 	token			String				@unique
 	user			User				@relation(fields: [userId], references: [id])
 	userId			Int					@unique
+}
+
+model Friend {
+	id              Int             @id @default(autoincrement())
+	
+	sender          User           	@relation("friends", fields: [senderId], references: [id])
+	senderId        Int
+
+	receiver        User            @relation("friendsRequests", fields: [receiverId], references: [id])
+	receiverId      Int  
+
+	accepted        Boolean         @default(false)
+
+	@@unique([senderId, receiverId])
 }

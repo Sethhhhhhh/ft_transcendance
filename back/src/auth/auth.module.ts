@@ -23,8 +23,8 @@ import { LocalStrategy } from './strategy/local.strategy';
                 host: 'smtp.mailtrap.io',
                 port: 2525,
                 auth: {
-                    user: '',
-                    pass: '',
+                    user: 'f009c6be1a075e',
+                    pass: 'b96b964ff5ca99',
                 },
             }
         }),

@@ -1,6 +1,6 @@
 import { BadRequestException, Body, Controller, Get, Param, Post, Req, Res, StreamableFile, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, User, Friend } from '@prisma/client';
 import { Request, Response } from 'express';
 import { createReadStream } from 'fs';
 import { diskStorage } from 'multer';
@@ -65,7 +65,6 @@ export class UsersController {
             fileFilter: (req, file, cb) => {
                 const allowedMimes = [
                     'image/jpeg',
-                    'image/pjpeg',
                     'image/png',
                     'image/gif',
                 ];
@@ -84,6 +83,7 @@ export class UsersController {
         return this._usersService.setAvatar(id, avatar);    
     }
 
+    @UseGuards(JwtAuthGuard)
     @Post(':id/experience')
     async setExperience(
         @Param('id') id: Prisma.UserWhereUniqueInput['id'],
@@ -91,4 +91,26 @@ export class UsersController {
     ): Promise<User> {
         return this._usersService.addExperience(id, point);
     }
+
+
+    @UseGuards(JwtAuthGuard)
+    @Post('sendFriendRequest')
+    async sendFriendRequest(
+        @Req() req: Request,
+        @Body('friendId') friendId: number
+    ): Promise<Friend> {
+        const { id } = req.user as User;
+        return this._usersService.sendFriendRequest(id, friendId);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('acceptFriendRequest')
+    async acceptFriendRequest(
+        @Req() req: Request,
+        @Body('friendId') friendId: number
+    ): Promise<Friend> {
+        const { id } = req.user as User;
+        return this._usersService.acceptFriendRequest(id, friendId);
+    }
+
 }

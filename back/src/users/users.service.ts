@@ -1,7 +1,8 @@
 import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, User, Friend } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 import * as fs from 'fs';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 @Injectable()
 export class UsersService {
@@ -46,7 +47,7 @@ export class UsersService {
                 where: { id: Number(id) },
                 data: { avatar: avatar.filename }
             });
-        
+
             return user;
         } catch(err) {
             if (err instanceof UnauthorizedException)
@@ -64,7 +65,7 @@ export class UsersService {
 
             if (!user)
                 throw new UnauthorizedException('User not found');
-        
+
             const newExperience: number = user.experience + (this._experienceGain * point);
 
             if (newExperience >= user.nextLevel) {
@@ -86,6 +87,104 @@ export class UsersService {
             if (err instanceof UnauthorizedException)
                 throw err;
             throw new InternalServerErrorException('Internal server error');
+        }
+    }
+
+    async addRankPoint(
+        id: Prisma.UserWhereUniqueInput['id'],
+        winner: boolean
+    ) : Promise<User> {
+        try {
+            const user: User = await this._prismaService.user.findUnique({ where: { id: Number(id) } });
+
+            if (!user)
+                throw new UnauthorizedException('User not found');
+            
+            const point = winner ? 10 : -10;
+
+            return this._prismaService.user.update({
+                where: { id: Number(id) },
+                data: { rankPoint: user.rankPoint + point }
+            });
+        } catch(err) {
+            if (err instanceof UnauthorizedException)
+                throw err;
+            throw new InternalServerErrorException('Internal server error');
+        }
+    }
+
+    async sendFriendRequest(
+        senderID: Prisma.UserWhereUniqueInput['id'],
+        receiverID: Prisma.UserWhereUniqueInput['id']
+    ) : Promise<Friend> {
+        try {
+            const user: User = await this._prismaService.user.findUnique({ where: { id: Number(senderID) } });
+
+            if (!user)
+                throw new UnauthorizedException('User not found');
+            
+            const friend: User = await this._prismaService.user.findUnique({ where: { id: Number(receiverID) } });
+
+            if (!friend)
+                throw new UnauthorizedException('Friend not found');
+            
+            const friendRequest = await this._prismaService.friend.create({
+                data: {
+                    sender: { connect: { id: Number(senderID) } },
+                    receiver: { connect: { id: Number(receiverID) } }
+                }
+            });
+
+            return friendRequest;
+        } catch(err) {
+            if (err instanceof PrismaClientKnownRequestError) {
+                if (err.code === 'P2002')
+                    throw new UnauthorizedException('Friend request already sent');
+            }
+            throw new InternalServerErrorException('Internal server error');
+        }
+    }
+
+    async acceptFriendRequest(
+        senderID: Prisma.UserWhereUniqueInput['id'],
+        receiverID: Prisma.UserWhereUniqueInput['id']
+    ) : Promise<Friend> {
+        try {
+            const friend = await this._prismaService.friend.update({
+                where: {
+                    senderId_receiverId: {
+                        senderId: Number(senderID),
+                        receiverId: Number(receiverID)
+                    }
+                },
+                data: { accepted: true }
+            });
+
+            return friend;
+        } catch(err) {
+            if (err instanceof UnauthorizedException)
+                throw err;
+            throw new InternalServerErrorException('Internal server error');
+        }
+    }
+
+    async getFriendRequests(
+        id: Prisma.UserWhereUniqueInput['id']
+    ) : Promise<Friend[] | null> {
+        try {
+            const friends: (Friend[] | null) = await this._prismaService.friend.findMany({
+                where: {
+                    receiverId: Number(id),
+                    accepted: false
+                }
+            });
+
+            if (!friends)
+                return null;
+        } catch(err) {
+            if (err instanceof UnauthorizedException)
+                throw err;
+            throw new InternalServerErrorException('Internal server error'); 
         }
     }
 
