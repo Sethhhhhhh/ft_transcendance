@@ -16,7 +16,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
         accessToken: string,
         refreshToken: string,
         profile: Profile
-    ): Promise<any> {        
+    ): Promise<{ email: string, username: string, password: string, imageURL: string}> {        
         const {
             username,
             emails,

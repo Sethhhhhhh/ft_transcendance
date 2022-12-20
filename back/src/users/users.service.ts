@@ -13,6 +13,7 @@ export class UsersService {
     private _experienceGain: number = 10;
     private _nextLevelPourcentage: number = 2;
     private _defaultAvatar: string = 'default.png';
+    private _rankPointGain: number = 10;
 
     async getAvatar(
         id: Prisma.UserWhereUniqueInput['id']
@@ -37,13 +38,13 @@ export class UsersService {
         try {
             if (!avatar)
                 throw new UnauthorizedException('Avatar not found');
-                
+
             const olderAvatar = await this.getAvatar(id);
             if (olderAvatar && olderAvatar !== this._defaultAvatar) {
                 await fs.promises.unlink(`./data/avatars/${olderAvatar}`);
             }
 
-            const user = await this._prismaService.user.update({
+            const user: (User | null) = await this._prismaService.user.update({
                 where: { id: Number(id) },
                 data: { avatar: avatar.filename }
             });
@@ -100,7 +101,7 @@ export class UsersService {
             if (!user)
                 throw new UnauthorizedException('User not found');
             
-            const point = winner ? 10 : -10;
+            const point = winner ? this._rankPointGain : -this._rankPointGain;
 
             return this._prismaService.user.update({
                 where: { id: Number(id) },
@@ -168,14 +169,15 @@ export class UsersService {
         }
     }
 
-    async getFriendRequests(
-        id: Prisma.UserWhereUniqueInput['id']
+    async getFriends(
+        id: Prisma.UserWhereUniqueInput['id'],
+        request: boolean
     ) : Promise<Friend[] | null> {
         try {
             const friends: (Friend[] | null) = await this._prismaService.friend.findMany({
                 where: {
                     receiverId: Number(id),
-                    accepted: false
+                    accepted: request
                 }
             });
 

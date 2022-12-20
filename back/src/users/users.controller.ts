@@ -112,5 +112,4 @@ export class UsersController {
         const { id } = req.user as User;
         return this._usersService.acceptFriendRequest(id, friendId);
     }
-
 }
